@@ -14,6 +14,7 @@ async function bootstrap() {
       transform: true, // Make sure the request data is an instance of the DTO
     }),
   );
-  await app.listen(8100);
+  const port = parseInt(process.env.APP_PORT, 10) || 8100;
+  await app.listen(port);
 }
 bootstrap();
