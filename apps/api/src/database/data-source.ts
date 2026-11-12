@@ -5,7 +5,7 @@ import { createDatabaseOptions } from './database.config';
 
 export default (async () => {
   await ConfigModule.forRoot({
-    envFilePath: process.env.ENV_FILE ?? '.env',
+    envFilePath: process.env.ENV_FILE ?? '.env.local',
   });
 
   return new DataSource(

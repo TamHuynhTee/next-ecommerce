@@ -13,9 +13,10 @@ import { Product } from '../modules/products/entities/product/product.entity';
 import { Address } from '../modules/users/entities/address.entity';
 import { Wishlist } from '../modules/users/entities/wishlist.entity';
 import { AppNamingStrategy } from './naming-strategy';
+import { AppConfig } from 'src/config/configuration';
 
 export function createDatabaseOptions(
-  config: ConfigService,
+  config: ConfigService<AppConfig, true>,
 ): TypeOrmModuleOptions | Promise<TypeOrmModuleOptions> {
   return {
     type: 'postgres',
@@ -45,10 +46,10 @@ export function createDatabaseOptions(
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',
     namingStrategy: new AppNamingStrategy(),
-    host: config.get('DB_HOST'),
-    port: config.get('DB_PORT'),
-    username: config.get('DB_USER'),
-    password: config.get('DB_PASSWORD'),
-    database: config.get('DB_NAME'),
+    host: config.get('database.host', { infer: true }),
+    port: config.get('database.port', { infer: true }),
+    username: config.get('database.user', { infer: true }),
+    password: config.get('database.password', { infer: true }),
+    database: config.get('database.name', { infer: true }),
   };
 }
