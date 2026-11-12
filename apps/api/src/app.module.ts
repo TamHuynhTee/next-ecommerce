@@ -9,6 +9,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
 import { ProductModule } from './modules/products/products.module';
 import { UserModule } from './modules/users/users.module';
+import configuration from './config/configuration';
 
 @Module({
   imports: [
@@ -18,6 +19,8 @@ import { UserModule } from './modules/users/users.module';
     ProductModule,
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env.local',
+      load: [configuration],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
