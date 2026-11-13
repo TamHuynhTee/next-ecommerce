@@ -2,6 +2,8 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { LoggingMiddleware } from './middleware/logging/logging.middleware';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from './config/configuration';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +16,7 @@ async function bootstrap() {
       transform: true, // Make sure the request data is an instance of the DTO
     }),
   );
-  const port = parseInt(process.env.APP_PORT, 10) || 8100;
-  await app.listen(port);
+  const config = app.get(ConfigService<AppConfig, true>);
+  await app.listen(config.get('app_port', { infer: true }));
 }
 bootstrap();
