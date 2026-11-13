@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-ecommerce",
+  "name": "@next-ecommerce/web",
   "version": "0.1.2",
   "private": true,
   "scripts": {
@@ -32,5 +32,28 @@
     "postcss": "^8.5.0",
     "tailwindcss": "^4.1.0",
     "typescript": "5.2.2"
+  },
+  "nx": {
+    "name": "web",
+    "tags": [
+      "scope:web",
+      "type:app"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/.next"
+        ]
+      },
+      "dev": {
+        "continuous": true
+      },
+      "start": {
+        "dependsOn": [
+          "build"
+        ],
+        "continuous": true
+      }
+    }
   }
 }

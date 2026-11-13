@@ -1,5 +1,5 @@
 {
-  "name": "ecommerce-api",
+  "name": "@next-ecommerce/api",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -87,5 +87,31 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "nx": {
+    "name": "api",
+    "tags": [
+      "scope:api",
+      "type:app"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      },
+      "start:dev": {
+        "continuous": true
+      },
+      "start:debug": {
+        "continuous": true
+      },
+      "start:prod": {
+        "dependsOn": [
+          "build"
+        ],
+        "continuous": true
+      }
+    }
   }
 }
