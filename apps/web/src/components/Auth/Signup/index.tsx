@@ -1,8 +1,50 @@
+"use client";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { getSafeRedirect } from "@/lib/auth/redirect";
 
 const Signup = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = getSafeRedirect(searchParams.get("redirect"));
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rePassword, setRePassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== rePassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, firstName, lastName, email, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = Array.isArray(data.message) ? data.message[0] : data.message;
+        toast.error(msg || "Could not create account");
+        return;
+      }
+      // The API returned a token, so the user is already authenticated.
+      router.replace(redirect ?? "/");
+      router.refresh();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <>
       <Breadcrumb title={"Signup"} pages={["Signup"]} />
@@ -17,7 +59,7 @@ const Signup = () => {
             </div>
 
             <div className="flex flex-col gap-4.5">
-              <button className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
+              <button type="button" className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
                 <svg
                   width="20"
                   height="20"
@@ -64,7 +106,7 @@ const Signup = () => {
                 Sign Up with Google
               </button>
 
-              <button className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
+              <button type="button" className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
                 <svg
                   width="22"
                   height="22"
@@ -87,19 +129,61 @@ const Signup = () => {
             </span>
 
             <div className="mt-5.5">
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div className="mb-5">
                   <label htmlFor="name" className="block mb-2.5">
-                    Full Name <span className="text-red">*</span>
+                    Username <span className="text-red">*</span>
                   </label>
 
                   <input
                     type="text"
-                    name="name"
+                    name="username"
                     id="name"
-                    placeholder="Enter your full name"
+                    required
+                    maxLength={24}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter your username"
                     className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="mb-5">
+                  <label htmlFor="firstName" className="block mb-2.5">
+                    First Name <span className="text-red">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    name="firstName"
+                    id="firstName"
+                    required
+                    maxLength={100}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Enter your first name"
+                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
+                  />
+                </div>
+
+                <div className="mb-5">
+                  <label htmlFor="lastName" className="block mb-2.5">
+                    Last Name <span className="text-red">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    name="lastName"
+                    id="lastName"
+                    required
+                    maxLength={100}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Enter your last name"
+                    className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
+                  />
+                </div>
                 </div>
 
                 <div className="mb-5">
@@ -111,6 +195,9 @@ const Signup = () => {
                     type="email"
                     name="email"
                     id="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
                     className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
                   />
@@ -125,6 +212,9 @@ const Signup = () => {
                     type="password"
                     name="password"
                     id="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     autoComplete="on"
                     className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
@@ -140,6 +230,9 @@ const Signup = () => {
                     type="password"
                     name="re-type-password"
                     id="re-type-password"
+                    required
+                    value={rePassword}
+                    onChange={(e) => setRePassword(e.target.value)}
                     placeholder="Re-type your password"
                     autoComplete="on"
                     className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
@@ -148,6 +241,7 @@ const Signup = () => {
 
                 <button
                   type="submit"
+                  disabled={submitting}
                   className="w-full flex justify-center font-medium text-white bg-dark py-3 px-6 rounded-lg ease-out duration-200 hover:bg-blue mt-7.5"
                 >
                   Create Account
@@ -156,7 +250,7 @@ const Signup = () => {
                 <p className="text-center mt-6">
                   Already have an account?
                   <Link
-                    href="/signin"
+                    href={redirect ? `/signin?redirect=${encodeURIComponent(redirect)}` : "/signin"}
                     className="text-dark ease-out duration-200 hover:text-blue pl-2"
                   >
                     Sign in Now

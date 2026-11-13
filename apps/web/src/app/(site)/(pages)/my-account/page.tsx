@@ -1,5 +1,6 @@
 import MyAccount from "@/components/MyAccount";
 import React from "react";
+import withProtectedRoute from "@/components/Auth/withProtectedRoute";
 
 import { Metadata } from "next";
 export const metadata: Metadata = {
@@ -16,4 +17,4 @@ const MyAccountPage = () => {
   );
 };
 
-export default MyAccountPage;
+export default withProtectedRoute(MyAccountPage, "/my-account");
