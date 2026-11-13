@@ -22,3 +22,15 @@
 
 
 <!-- nx configuration end-->
+
+# Project Conventions
+
+## Code comments
+
+- Write all code comments in English only (including JSDoc, `TODO`s and inline comments), regardless of the language used in chat.
+
+## Git workflow
+
+- Always create a new branch before starting work. Never work or commit directly on `main`.
+- Only commit when the user explicitly asks for it.
+- Keep each commit focused: it must contain only related changes. Split unrelated changes into separate commits.
