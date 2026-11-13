@@ -1,4 +1,5 @@
 import React from "react";
+import { Suspense } from "react";
 import Hero from "./Hero";
 import Categories from "./Categories";
 import NewArrival from "./NewArrivals";
@@ -12,12 +13,12 @@ const Home = () => {
   return (
     <main>
       <Hero />
-      <Categories />
+      <Suspense><Categories /></Suspense>
       <NewArrival />
       <PromoBanner />
       <BestSeller />
       <CounDown />
-      <Testimonials />
+      <Suspense><Testimonials /></Suspense>
       <Newsletter />
     </main>
   );

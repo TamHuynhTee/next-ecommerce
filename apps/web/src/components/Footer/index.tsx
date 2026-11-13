@@ -1,9 +1,15 @@
 import React from "react";
 import Image from "next/image";
+import { cacheLife } from "next/cache";
+
+// Cached so the current-time read is part of the static shell instead of blocking it.
+async function CurrentYear() {
+  "use cache";
+  cacheLife("days");
+  return <>{new Date().getFullYear()}</>;
+}
 
 const Footer = () => {
-  const year = new Date().getFullYear();
-
   return (
     <footer className="overflow-hidden">
       <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0">
@@ -338,7 +344,7 @@ const Footer = () => {
         <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0">
           <div className="flex gap-5 flex-wrap items-center justify-between">
             <p className="text-dark font-medium">
-              &copy; {year}. All rights reserved by PimjoLabs.
+              &copy; <CurrentYear />. All rights reserved by PimjoLabs.
             </p>
 
             <div className="flex flex-wrap items-center gap-4">

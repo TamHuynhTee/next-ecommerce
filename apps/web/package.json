@@ -20,6 +20,7 @@
     "react-range-slider-input": "^3.0.7",
     "react-redux": "^9.2.0",
     "sanity": "^5.16.0",
+    "server-only": "^0.0.1",
     "swiper": "^10.2.0"
   },
   "devDependencies": {

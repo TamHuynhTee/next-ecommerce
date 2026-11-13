@@ -1,4 +1,5 @@
 import React from "react";
+import withProtectedRoute from "@/components/Auth/withProtectedRoute";
 import Checkout from "@/components/Checkout";
 
 import { Metadata } from "next";
@@ -16,4 +17,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default withProtectedRoute(CheckoutPage, "/checkout");

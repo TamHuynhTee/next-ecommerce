@@ -1,4 +1,5 @@
 import React from "react";
+import { Suspense } from "react";
 import HeroCarousel from "./HeroCarousel";
 import HeroFeature from "./HeroFeature";
 import Image from "next/image";
@@ -19,7 +20,7 @@ const Hero = () => {
                 height={520}
               />
 
-              <HeroCarousel />
+              <Suspense><HeroCarousel /></Suspense>
             </div>
           </div>
 

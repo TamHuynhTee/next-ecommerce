@@ -23,8 +23,10 @@ export class AuthController {
 
   @Public()
   @Post('sign-up')
-  async signup(@Body() body: SignupDto): Promise<User> {
-    return this.userService.create(body);
+  async signup(@Body() body: SignupDto) {
+    // Issue a token right after registration so the user is authenticated immediately.
+    const user = await this.userService.create(body);
+    return this.authService.login(user);
   }
 
   @UseGuards(LocalAuthGuard)

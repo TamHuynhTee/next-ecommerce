@@ -1,5 +1,5 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { Suspense, use, useEffect, useState } from "react";
 import Breadcrumb from "../Common/Breadcrumb";
 import Image from "next/image";
 import Newsletter from "../Common/Newsletter";
@@ -75,16 +75,27 @@ const ShopDetails = () => {
 
   const colors = ["red", "blue", "orange", "pink", "purple"];
 
-  const alreadyExist = localStorage.getItem("productDetails");
-  const productFromStorage = useAppSelector(
+  const productFromStore = useAppSelector(
     (state) => state.productDetailsReducer.value
   );
-
-  const product = alreadyExist ? JSON.parse(alreadyExist) : productFromStorage;
+  // localStorage only exists in the browser, so read it after mount to keep SSR/prerender safe.
+  const [storedProduct, setStoredProduct] = useState<typeof productFromStore | null>(
+    null
+  );
+  const [storageChecked, setStorageChecked] = useState(false);
 
   useEffect(() => {
+    const alreadyExist = localStorage.getItem("productDetails");
+    if (alreadyExist) setStoredProduct(JSON.parse(alreadyExist));
+    setStorageChecked(true);
+  }, []);
+
+  const product = storedProduct ?? productFromStore;
+
+  useEffect(() => {
+    if (!storageChecked) return;
     localStorage.setItem("productDetails", JSON.stringify(product));
-  }, [product]);
+  }, [product, storageChecked]);
 
   // pass the product here when you get the real data.
   const handlePreviewSlider = () => {
@@ -1435,7 +1446,7 @@ const ShopDetails = () => {
             </div>
           </section>
 
-          <RecentlyViewdItems />
+          <Suspense><RecentlyViewdItems /></Suspense>
 
           <Newsletter />
         </>
