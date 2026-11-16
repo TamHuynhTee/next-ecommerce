@@ -7,6 +7,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
 import { Public } from 'src/common/decorators/public.decorator';
 import { LocalAuthGuard } from '../../common/guards/local-auth.guard';
 import { User } from '../users/entities/user.entity';
@@ -34,6 +36,13 @@ export class AuthController {
   @Post('sign-in')
   async signin(@Req() req: Request) {
     return this.authService.login(req.user as User);
+  }
+
+  /** Lets the admin app verify, server-side, that the token belongs to an admin. */
+  @Roles(Role.Admin)
+  @Get('admin/me')
+  getAdminProfile(@Req() req: Request) {
+    return req.user;
   }
 
   @Get('me')
