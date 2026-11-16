@@ -1,7 +1,5 @@
 // Mocked data for the scaffold. Replace with calls through `lib/api-client.ts` later.
 
-export const currentUser = { name: "Katie Pena", role: "Admin", initials: "KP" };
-
 export const stats = [
   { label: "Revenue this month", value: "$22,880.50", hint: "From 18 orders", progress: 67, tone: "chart-1", icon: "briefcase" },
   { label: "Daily average income", value: "$1,096.30", hint: "Last 30 days", progress: 18, tone: "chart-2", icon: "wallet" },
