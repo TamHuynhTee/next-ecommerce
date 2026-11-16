@@ -20,3 +20,16 @@ pnpm nx start admin    # serve the production build
 - `src/lib/mock-data.ts` – mocked data; `src/lib/api-client.ts` and `src/lib/auth.ts` are placeholders for the API client (NestJS, port 8100) and the auth guard.
 
 Light/dark/system theme is available from the header toggle. No real auth or API calls yet.
+
+## Authentication
+
+- Sign-in posts to the API `POST /auth/sign-in` from a server action and stores the JWT in an httpOnly cookie (`admin_access_token`).
+- `src/proxy.ts` redirects unauthenticated users (or non-admin tokens) to `/sign-in`; `requireAdmin()` in `src/lib/auth/session.ts` guards the dashboard layout.
+- Only users with `role = admin` may enter. The API now stores a `role` on users, puts it in the JWT, and enforces it with `@Roles(Role.Admin)`.
+- Set `API_URL` to override the API base URL (default `http://localhost:8100`).
+
+Create the first admin (after running the API migration `pnpm nx run api:migration:run`):
+
+```bash
+ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='<password>' pnpm nx run api:seed:admin
+```

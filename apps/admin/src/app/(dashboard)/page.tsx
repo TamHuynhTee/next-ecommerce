@@ -6,14 +6,16 @@ import { RecentOrders } from "@/components/dashboard/recent-orders";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
-import { currentUser, stats } from "@/lib/mock-data";
+import { getSession } from "@/lib/auth/session";
+import { stats } from "@/lib/mock-data";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const user = await getSession();
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Hi {currentUser.name}</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Hi {user?.name}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Welcome back to your store dashboard</p>
         </div>
         <div className="flex gap-3">

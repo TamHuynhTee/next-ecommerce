@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { currentUser } from "@/lib/mock-data";
+import { signOutAction } from "@/app/(auth)/sign-in/actions";
+import type { AdminUser } from "@/lib/auth/token";
 
 import { ThemeToggle } from "./theme-toggle";
 
-export function SiteHeader() {
+export function SiteHeader({ user }: { user: AdminUser }) {
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b bg-card px-4 md:px-6">
       <SidebarTrigger className="-ml-1" />
@@ -49,12 +50,12 @@ export function SiteHeader() {
             <button className="ml-2 flex items-center gap-3 rounded-md p-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <Avatar className="size-9">
                 <AvatarFallback className="bg-secondary text-secondary-foreground">
-                  {currentUser.initials}
+                  {user.initials}
                 </AvatarFallback>
               </Avatar>
               <span className="hidden leading-tight sm:block">
-                <span className="block text-sm font-medium">{currentUser.name}</span>
-                <span className="block text-xs text-muted-foreground">{currentUser.role}</span>
+                <span className="block text-sm font-medium">{user.name}</span>
+                <span className="block text-xs text-muted-foreground">{user.role}</span>
               </span>
             </button>
           </DropdownMenuTrigger>
@@ -63,7 +64,11 @@ export function SiteHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <form action={signOutAction}>
+              <DropdownMenuItem asChild>
+                <button type="submit" className="w-full cursor-pointer">Sign out</button>
+              </DropdownMenuItem>
+            </form>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

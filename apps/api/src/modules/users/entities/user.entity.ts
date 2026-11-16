@@ -2,6 +2,7 @@ import { Exclude } from 'class-transformer';
 import { CoreSoftDeleteEntity } from 'src/entities/core.entity';
 import { CartItem } from 'src/modules/cart/entities/cart-item.entity';
 import { OrderDetail } from 'src/modules/order/entities/order.entity';
+import { Role } from 'src/common/enums/role.enum';
 import { Column, Entity, OneToMany, Unique } from 'typeorm';
 import { Address } from './address.entity';
 import { Wishlist } from './wishlist.entity';
@@ -63,6 +64,15 @@ export class User extends CoreSoftDeleteEntity {
   })
   @Exclude()
   hashedPassword: string;
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    enumName: 'user_role',
+    nullable: false,
+    default: Role.User,
+  })
+  role: Role;
 
   @Column({
     type: 'date',
