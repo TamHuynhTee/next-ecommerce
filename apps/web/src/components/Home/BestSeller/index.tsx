@@ -2,9 +2,12 @@ import React from "react";
 import SingleItem from "./SingleItem";
 import Image from "next/image";
 import Link from "next/link";
-import shopData from "@/components/Shop/shopData";
+import { getProducts } from "@/lib/catalog/api";
 
-const BestSeller = () => {
+// There are no sales figures yet, so this shows the most recently added products.
+const BestSeller = async () => {
+  const { items: products } = await getProducts({ limit: 6 });
+  if (products.length === 0) return null;
   return (
     <section className="overflow-hidden">
       <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
@@ -28,8 +31,8 @@ const BestSeller = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7.5">
           {/* <!-- Best Sellers item --> */}
-          {shopData.slice(1, 7).map((item, key) => (
-            <SingleItem item={item} key={key} />
+          {products.map((item) => (
+            <SingleItem item={item} key={item.id} />
           ))}
         </div>
 
