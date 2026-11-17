@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMinSize,
   IsArray,
-  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { ProductStatus } from '../entities/product/product.entity';
 import { CreateProductVariantDto } from './create-product-variant.dto';
+import { IsSlug } from './slug';
 
 export class CreateProductDto {
   @IsString()
@@ -20,19 +21,12 @@ export class CreateProductDto {
   @MaxLength(100)
   name: string;
 
-  @IsString()
-  @IsOptional()
-  description: string | null;
-
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(150)
+  @IsSlug(150)
   slug: string;
 
   @IsString()
   @IsOptional()
-  @MaxLength(100)
-  brand: string | null;
+  description?: string | null;
 
   @IsEnum(ProductStatus)
   @IsOptional()
@@ -41,16 +35,14 @@ export class CreateProductDto {
   @IsUrl()
   @IsOptional()
   @MaxLength(500)
-  thumbnailUrl?: string;
+  thumbnailUrl?: string | null;
 
+  /** Id of the SubCategory the product belongs to. */
   @IsUUID()
   categoryId: string;
 
-  @IsBoolean()
-  @IsOptional()
-  isFeatured?: boolean;
-
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateProductVariantDto)
   variants: CreateProductVariantDto[];
