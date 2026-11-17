@@ -1,10 +1,18 @@
 import { Suspense } from "react";
-import "../css/euclid-circular-a-font.css";
+import { Be_Vietnam_Pro } from "next/font/google";
 import "../css/style.css";
 import AppShell from "./AppShell";
 import HeaderAuth from "@/components/Header/HeaderAuth";
 import Footer from "@/components/Footer";
 import UserMenu from "@/components/Header/UserMenu";
+
+// Designed for Vietnamese, so stacked diacritics render cleanly next to Latin text.
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ["vietnamese", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-be-vietnam-pro",
+  display: "swap",
+});
 
 export default function RootLayout({
   children,
@@ -12,7 +20,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html
+      lang="en"
+      className={beVietnamPro.variable}
+      suppressHydrationWarning={true}
+    >
       <body>
         <AppShell
           footer={<Footer />}
