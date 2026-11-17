@@ -26,13 +26,13 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="h-16 justify-center px-4">
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+      <SidebarHeader className="h-16 justify-center px-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold group-data-[collapsible=icon]:justify-center">
           <Gem className="size-6 shrink-0 text-primary" />
           <span className="group-data-[collapsible=icon]:hidden">Backoffice</span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-2 group-data-[collapsible=icon]:px-0">
         {navigation.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
@@ -45,11 +45,12 @@ export function AppSidebar() {
                       size="lg"
                       isActive={isActive(item.href)}
                       tooltip={item.title}
-                      className="rounded-[10px] text-muted-foreground data-[active=true]:font-medium data-[active=true]:text-foreground"
+                      className="rounded-[10px] text-muted-foreground data-[active=true]:font-medium data-[active=true]:text-foreground group-data-[collapsible=icon]:justify-center"
                     >
                       <Link href={item.href}>
                         <item.icon className="data-[active=true]:text-primary" />
-                        <span>{item.title}</span>
+                        {/* Hide the label when collapsed to icons; otherwise its first letter peeks out. */}
+                        <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                     {item.badge ? (
