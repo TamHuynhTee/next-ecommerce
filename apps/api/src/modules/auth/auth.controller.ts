@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Request as Req,
   UseGuards,
@@ -14,6 +16,7 @@ import { LocalAuthGuard } from '../../common/guards/local-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SignupDto } from './dto/sign-up.dto';
 
 @Controller('auth')
@@ -36,6 +39,20 @@ export class AuthController {
   @Post('sign-in')
   async signin(@Req() req: Request) {
     return this.authService.login(req.user as User);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  async refresh(@Body() body: RefreshTokenDto) {
+    return this.authService.refresh(body.refresh_token);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('sign-out')
+  async signOut(@Body() body: RefreshTokenDto) {
+    await this.authService.signOut(body.refresh_token);
   }
 
   /** Lets the admin app verify, server-side, that the token belongs to an admin. */

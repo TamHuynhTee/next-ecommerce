@@ -11,6 +11,7 @@ import { SubCategory } from '../modules/products/entities/category/sub-category.
 import { ProductVariant } from '../modules/products/entities/product/product-variant.entity';
 import { Product } from '../modules/products/entities/product/product.entity';
 import { Address } from '../modules/users/entities/address.entity';
+import { RefreshToken } from '../modules/auth/entities/refresh-token.entity';
 import { Wishlist } from '../modules/users/entities/wishlist.entity';
 import { AppNamingStrategy } from './naming-strategy';
 import { AppConfig } from 'src/config/configuration';
@@ -23,6 +24,7 @@ export function createDatabaseOptions(
     entities: [
       User,
       Address,
+      RefreshToken,
       Wishlist,
       Category,
       SubCategory,
