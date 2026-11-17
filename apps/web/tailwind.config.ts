@@ -11,7 +11,7 @@ const config: Config = {
   darkMode: "class",
   theme: {
     fontFamily: {
-      "euclid-circular-a": ["Euclid Circular A"],
+      sans: ["var(--font-be-vietnam-pro)", ...defaultTheme.fontFamily.sans],
     },
     container: {
       center: true,
