@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   Matches,
   MaxLength,
   Min,
@@ -44,7 +45,7 @@ export class CreateProductVariantDto {
     message: ERROR_CODE.INVALID_NUMBER,
   })
   @IsOptional()
-  originalPrice: string | null;
+  originalPrice?: string | null;
 
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toUpperCase() : value,
@@ -60,7 +61,7 @@ export class CreateProductVariantDto {
   @IsUrl()
   @IsOptional()
   @MaxLength(500)
-  imageUrl?: string;
+  imageUrl?: string | null;
 
   @IsObject()
   @IsOptional()
@@ -69,4 +70,11 @@ export class CreateProductVariantDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+}
+
+export class UpdateProductVariantDto extends CreateProductVariantDto {
+  /** Present for existing variants; omitted for variants to insert. */
+  @IsUUID()
+  @IsOptional()
+  id?: string;
 }
