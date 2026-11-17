@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Query,
+  Request as Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
@@ -17,6 +19,10 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductsDto } from './dto/list-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './services/products.service';
+
+/** Public routes are reachable anonymously; only admins may see unpublished products. */
+const isAdmin = (req: Request) =>
+  (req.user as { role?: Role } | undefined)?.role === Role.Admin;
 
 @Controller('products')
 export class ProductsController {
@@ -30,14 +36,20 @@ export class ProductsController {
 
   @Public()
   @Get()
-  findAll(@Query() query: ListProductsDto) {
-    return this.productsService.findAll(query);
+  findAll(@Query() query: ListProductsDto, @Req() req: Request) {
+    return this.productsService.findAll(query, isAdmin(req));
+  }
+
+  @Public()
+  @Get('slug/:slug')
+  findBySlug(@Param('slug') slug: string, @Req() req: Request) {
+    return this.productsService.findBySlug(slug, isAdmin(req));
   }
 
   @Public()
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productsService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    return this.productsService.findOne(id, isAdmin(req));
   }
 
   @Roles(Role.Admin)
