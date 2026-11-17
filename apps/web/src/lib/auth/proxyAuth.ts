@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { API_URL } from "./constants";
-import { setAccessTokenCookie } from "./cookie";
+import { setSessionCookies } from "./cookie";
 
 /**
- * Forwards credentials to the API, stores the returned token in an httpOnly
- * cookie and returns the API error payload unchanged on failure.
+ * Forwards credentials to the API, stores the returned tokens in httpOnly
+ * cookies and returns the API error payload unchanged on failure.
  */
 export async function forwardAuth(apiPath: string, body: unknown) {
   let apiRes: Response;
@@ -20,11 +20,11 @@ export async function forwardAuth(apiPath: string, body: unknown) {
   }
 
   const data = await apiRes.json().catch(() => ({}));
-  if (!apiRes.ok || !data.access_token) {
+  if (!apiRes.ok || !data.access_token || !data.refresh_token) {
     return NextResponse.json(data, { status: apiRes.status || 500 });
   }
 
   const res = NextResponse.json({ success: true });
-  setAccessTokenCookie(res, data.access_token);
+  setSessionCookies(res, data.access_token, data.refresh_token);
   return res;
 }
