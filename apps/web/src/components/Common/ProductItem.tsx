@@ -6,10 +6,10 @@ import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { updateQuickView } from "@/redux/features/quickView-slice";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { addItemToWishlist } from "@/redux/features/wishlist-slice";
-import { updateproductDetails } from "@/redux/features/product-details";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Link from "next/link";
+import { formatPrice } from "@/lib/format";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
@@ -26,6 +26,8 @@ const ProductItem = ({ item }: { item: Product }) => {
     dispatch(
       addItemToCart({
         ...item,
+        // Cart lines are per variant so different variants of a product stay separate.
+        id: item.variantId ?? item.id,
         quantity: 1,
       })
     );
@@ -41,9 +43,6 @@ const ProductItem = ({ item }: { item: Product }) => {
     );
   };
 
-  const handleProductDetails = () => {
-    dispatch(updateproductDetails({ ...item }));
-  };
 
   return (
     <div className="group">
@@ -115,53 +114,20 @@ const ProductItem = ({ item }: { item: Product }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 mb-2">
-        <div className="flex items-center gap-1">
-          <Image
-            src="/images/icons/icon-star.svg"
-            alt="star icon"
-            width={14}
-            height={14}
-          />
-          <Image
-            src="/images/icons/icon-star.svg"
-            alt="star icon"
-            width={14}
-            height={14}
-          />
-          <Image
-            src="/images/icons/icon-star.svg"
-            alt="star icon"
-            width={14}
-            height={14}
-          />
-          <Image
-            src="/images/icons/icon-star.svg"
-            alt="star icon"
-            width={14}
-            height={14}
-          />
-          <Image
-            src="/images/icons/icon-star.svg"
-            alt="star icon"
-            width={14}
-            height={14}
-          />
-        </div>
-
-        <p className="text-custom-sm">({item.reviews})</p>
-      </div>
 
       <h3
         className="font-medium text-dark ease-out duration-200 hover:text-blue mb-1.5"
-        onClick={() => handleProductDetails()}
       >
-        <Link href="/shop-details"> {item.title} </Link>
+        <Link href={`/shop-details/${item.slug}`}> {item.title} </Link>
       </h3>
 
       <span className="flex items-center gap-2 font-medium text-lg">
-        <span className="text-dark">${item.discountedPrice}</span>
-        <span className="text-dark-4 line-through">${item.price}</span>
+        <span className="text-dark">{formatPrice(item.discountedPrice)}</span>
+        {item.price > item.discountedPrice && (
+          <span className="text-dark-4 line-through">
+            {formatPrice(item.price)}
+          </span>
+        )}
       </span>
     </div>
   );

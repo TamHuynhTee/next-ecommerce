@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import CustomSelect from "./CustomSelect";
 import { menuData } from "./menuData";
@@ -235,11 +235,24 @@ const Header = ({ authSlot }: { authSlot?: React.ReactNode }) => {
                 <ul className="flex xl:items-center flex-col xl:flex-row gap-5 xl:gap-6">
                   {menuData.map((menuItem, i) =>
                     menuItem.submenu ? (
-                      <Dropdown
+                      // Dropdown reads the pathname, which is unknown while
+                      // prerendering dynamic routes such as /shop-details/[slug].
+                      <Suspense
                         key={i}
-                        menuItem={menuItem}
-                        stickyMenu={stickyMenu}
-                      />
+                        fallback={
+                          <li>
+                            <span
+                              className={`text-custom-sm font-medium text-dark flex ${
+                                stickyMenu ? "xl:py-4" : "xl:py-6"
+                              }`}
+                            >
+                              {menuItem.title}
+                            </span>
+                          </li>
+                        }
+                      >
+                        <Dropdown menuItem={menuItem} stickyMenu={stickyMenu} />
+                      </Suspense>
                     ) : (
                       <li
                         key={i}

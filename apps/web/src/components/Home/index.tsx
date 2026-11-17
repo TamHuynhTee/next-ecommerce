@@ -14,9 +14,9 @@ const Home = () => {
     <main>
       <Hero />
       <Suspense><Categories /></Suspense>
-      <NewArrival />
+      <Suspense><NewArrival /></Suspense>
       <PromoBanner />
-      <BestSeller />
+      <Suspense><BestSeller /></Suspense>
       <CounDown />
       <Suspense><Testimonials /></Suspense>
       <Newsletter />
