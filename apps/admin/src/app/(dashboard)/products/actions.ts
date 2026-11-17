@@ -5,43 +5,26 @@ import { redirect } from "next/navigation";
 
 import { apiFetch } from "@/lib/api-client";
 import { errorMessage } from "@/lib/api/errors";
-import type { ActionState } from "@/lib/api/types";
+import { getCategories } from "@/lib/api/catalog";
+import type { ActionState, Category } from "@/lib/api/types";
 
-type VariantInput = {
-  id?: string;
-  sku: string;
-  name: string;
-  color: string;
-  size: string;
-  unitPrice: string;
-  originalPrice: string;
-  currency: string;
-  stock: string;
-  imageUrl: string;
-  isActive: boolean;
-};
+import type { ProductFormValues } from "./form-types";
 
-const text = (fd: FormData, key: string) => String(fd.get(key) ?? "").trim();
 const orNull = (value: string) => value.trim() || null;
 
-export async function saveProductAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const id = text(fd, "id");
-  let variants: VariantInput[];
-  try {
-    variants = JSON.parse(text(fd, "variants") || "[]");
-  } catch {
-    return { error: "Invalid variants data." };
-  }
-  if (variants.length === 0) return { error: "Add at least one variant." };
+/** Creates (no id) or updates a product. Redirects to the list on success. */
+export async function saveProductAction(id: string | undefined, values: ProductFormValues): Promise<ActionState> {
+  if (values.variants.length === 0) return { error: "Add at least one variant." };
+  if (!values.categoryId) return { error: "Select a sub-category." };
 
   const body = {
-    name: text(fd, "name"),
-    slug: text(fd, "slug"),
-    description: orNull(text(fd, "description")),
-    status: text(fd, "status") || "draft",
-    thumbnailUrl: orNull(text(fd, "thumbnailUrl")),
-    categoryId: text(fd, "categoryId"),
-    variants: variants.map((v) => ({
+    name: values.name.trim(),
+    slug: values.slug.trim(),
+    description: orNull(values.description),
+    status: values.status || "draft",
+    thumbnailUrl: orNull(values.thumbnailUrl),
+    categoryId: values.categoryId,
+    variants: values.variants.map((v) => ({
       ...(v.id ? { id: v.id } : {}),
       sku: v.sku.trim(),
       name: orNull(v.name),
@@ -55,7 +38,6 @@ export async function saveProductAction(_prev: ActionState, fd: FormData): Promi
       isActive: v.isActive,
     })),
   };
-  if (!body.categoryId) return { error: "Select a sub-category." };
 
   try {
     await apiFetch(id ? `/products/${id}` : "/products", {
@@ -67,6 +49,15 @@ export async function saveProductAction(_prev: ActionState, fd: FormData): Promi
   }
   revalidatePath("/products");
   redirect("/products");
+}
+
+/** Loads the category tree on demand (when the sub-category select is opened). */
+export async function loadCategoriesAction(): Promise<{ categories?: Category[]; error?: string }> {
+  try {
+    return { categories: await getCategories() };
+  } catch (e) {
+    return { error: errorMessage(e) };
+  }
 }
 
 export async function deleteProductAction(id: string): Promise<ActionState> {

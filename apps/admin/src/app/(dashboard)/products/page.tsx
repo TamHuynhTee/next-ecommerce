@@ -123,8 +123,17 @@ export default async function ProductsPage({
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>Page {page} of {pages}</span>
             <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm" disabled={page <= 1}><Link href={link(page - 1)} aria-disabled={page <= 1}>Previous</Link></Button>
-              <Button asChild variant="outline" size="sm" disabled={page >= pages}><Link href={link(page + 1)} aria-disabled={page >= pages}>Next</Link></Button>
+              {/* A disabled <Button asChild> does not stop a Link, so render a real disabled button instead. */}
+              {page <= 1 ? (
+                <Button variant="outline" size="sm" disabled>Previous</Button>
+              ) : (
+                <Button asChild variant="outline" size="sm"><Link href={link(Math.min(page - 1, pages))}>Previous</Link></Button>
+              )}
+              {page >= pages ? (
+                <Button variant="outline" size="sm" disabled>Next</Button>
+              ) : (
+                <Button asChild variant="outline" size="sm"><Link href={link(page + 1)}>Next</Link></Button>
+              )}
             </div>
           </div>
         </CardContent>
