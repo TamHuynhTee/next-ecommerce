@@ -12,6 +12,8 @@ export const configuration = () => ({
   jwt: {
     secret_key: process.env.JWT_SECRET ?? '',
     expires_in: process.env.JWT_EXPIRE_IN ?? '5m',
+    refresh_expires_in_days:
+      parseInt(process.env.JWT_REFRESH_EXPIRE_DAYS ?? '', 10) || 7,
   },
 });
 
