@@ -10,6 +10,9 @@ export function proxy(req: NextRequest) {
   const isAdmin = !!userFromToken(token);
   const isSignIn = pathname === SIGN_IN_PATH;
 
+  // Server actions cannot follow an HTML redirect; let them through so apiFetch can redirect on a 401.
+  if (!isAdmin && !isSignIn && req.headers.has("next-action")) return NextResponse.next();
+
   if (!isAdmin && !isSignIn) {
     const url = new URL(SIGN_IN_PATH, req.url);
     if (pathname !== "/") url.searchParams.set("redirect", pathname + search);
