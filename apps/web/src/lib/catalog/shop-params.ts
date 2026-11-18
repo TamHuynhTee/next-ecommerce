@@ -12,9 +12,12 @@ const SORTS: ProductSort[] = ["newest", "price_asc", "price_desc"];
 const first = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
 
-const toInt = (value: string | undefined) => {
+// Mirrors the API limits so absurd URL values are clamped instead of rejected.
+const MAX_PAGE = 1_000_000;
+
+const toInt = (value: string | undefined, max = Number.MAX_SAFE_INTEGER) => {
   const n = Number.parseInt(value ?? "", 10);
-  return Number.isFinite(n) && n >= 0 ? n : undefined;
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, max) : undefined;
 };
 
 export function flattenParams(raw: RawSearchParams): ShopParams {
@@ -31,7 +34,7 @@ export function toProductQuery(params: ShopParams, categories: Category[]) {
   const sort = SORTS.includes(params.sort as ProductSort)
     ? (params.sort as ProductSort)
     : "newest";
-  const page = Math.max(1, toInt(params.page) ?? 1);
+  const page = Math.max(1, toInt(params.page, MAX_PAGE) ?? 1);
 
   const query: ProductQuery = {
     page,
