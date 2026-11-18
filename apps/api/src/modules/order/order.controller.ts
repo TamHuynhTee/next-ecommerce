@@ -1,34 +1,65 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Request as Req,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
+import {
+  CreateOrderDto,
+  ListOrdersDto,
+  UpdateOrderStatusDto,
+} from './dto/order.dto';
 import { OrderService } from './order.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 
-@Controller('order')
+/** Every route requires a JWT; customers only ever touch their own orders. */
+@Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  create(@Req() req: Request, @Body() body: CreateOrderDto) {
+    return this.orderService.create(this.userId(req), body);
   }
 
   @Get()
-  findAll() {
-    return this.orderService.findAll();
+  list(@Req() req: Request, @Query() query: ListOrdersDto) {
+    return this.orderService.list(this.userId(req), query);
+  }
+
+  @Roles(Role.Admin)
+  @Get('admin')
+  listAll(@Query() query: ListOrdersDto) {
+    return this.orderService.listAll(query);
+  }
+
+  @Roles(Role.Admin)
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateOrderStatusDto,
+  ) {
+    return this.orderService.updateStatus(id, body.status);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
+  findOne(@Req() req: Request, @Param('id', ParseUUIDPipe) id: string) {
+    return this.orderService.findOne(this.userId(req), id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
+  @Post(':id/cancel')
+  cancel(@Req() req: Request, @Param('id', ParseUUIDPipe) id: string) {
+    return this.orderService.cancel(this.userId(req), id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  private userId(req: Request) {
+    return (req.user as { userId: string }).userId;
   }
 }
