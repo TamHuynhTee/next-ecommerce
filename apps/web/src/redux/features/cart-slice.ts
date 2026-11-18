@@ -1,32 +1,50 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 
-type InitialState = {
-  items: CartItem[];
-};
-
-type CartItem = {
+export type CartItem = {
+  /** Variant id: cart lines are per variant. */
   id: string;
   title: string;
   price: number;
   discountedPrice: number;
   quantity: number;
+  /** Known for lines loaded from the server; used to cap the quantity. */
+  stock?: number;
+  slug?: string;
   imgs?: {
     thumbnails: string[];
     previews: string[];
   };
 };
 
-const initialState: InitialState = {
-  items: [],
+type InitialState = {
+  items: CartItem[];
+  /** True while the cart mirrors the signed-in user's server cart. */
+  authenticated: boolean;
 };
 
+const initialState: InitialState = {
+  items: [],
+  authenticated: false,
+};
+
+/**
+ * Plain reducers only touch local state. Components dispatch the thunks in
+ * `cart-thunks.ts`, which also sync with the API for signed-in users.
+ */
 export const cart = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    addItemToCart: (state, action: PayloadAction<CartItem>) => {
-      const { id, title, price, quantity, discountedPrice, imgs } =
+    setCart: (
+      state,
+      action: PayloadAction<{ items: CartItem[]; authenticated: boolean }>,
+    ) => {
+      state.items = action.payload.items;
+      state.authenticated = action.payload.authenticated;
+    },
+    addItemLocal: (state, action: PayloadAction<CartItem>) => {
+      const { id, title, price, quantity, discountedPrice, imgs, slug } =
         action.payload;
       const existingItem = state.items.find((item) => item.id === id);
 
@@ -40,26 +58,23 @@ export const cart = createSlice({
           quantity,
           discountedPrice,
           imgs,
+          slug,
         });
       }
     },
-    removeItemFromCart: (state, action: PayloadAction<string>) => {
-      const itemId = action.payload;
-      state.items = state.items.filter((item) => item.id !== itemId);
+    removeItemLocal: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter((item) => item.id !== action.payload);
     },
-    updateCartItemQuantity: (
+    updateQuantityLocal: (
       state,
-      action: PayloadAction<{ id: string; quantity: number }>
+      action: PayloadAction<{ id: string; quantity: number }>,
     ) => {
-      const { id, quantity } = action.payload;
-      const existingItem = state.items.find((item) => item.id === id);
-
-      if (existingItem) {
-        existingItem.quantity = quantity;
-      }
+      const existingItem = state.items.find(
+        (item) => item.id === action.payload.id,
+      );
+      if (existingItem) existingItem.quantity = action.payload.quantity;
     },
-
-    removeAllItemsFromCart: (state) => {
+    clearLocal: (state) => {
       state.items = [];
     },
   },
@@ -74,9 +89,10 @@ export const selectTotalPrice = createSelector([selectCartItems], (items) => {
 });
 
 export const {
-  addItemToCart,
-  removeItemFromCart,
-  updateCartItemQuantity,
-  removeAllItemsFromCart,
+  setCart,
+  addItemLocal,
+  removeItemLocal,
+  updateQuantityLocal,
+  clearLocal,
 } = cart.actions;
 export default cart.reducer;

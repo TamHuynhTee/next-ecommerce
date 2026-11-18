@@ -19,9 +19,11 @@ import PreLoader from "@/components/Common/PreLoader";
 export default function AppShell({
   headerAuth,
   footer,
+  cartSlot,
   children,
 }: {
   headerAuth: React.ReactNode;
+  cartSlot: React.ReactNode;
   footer: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -39,6 +41,7 @@ export default function AppShell({
       {loading && <PreLoader />}
       <Toaster position="top-right" />
       <ReduxProvider>
+        {cartSlot}
         <CartModalProvider>
           <ModalProvider>
             <PreviewSliderProvider>

@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 import { AppDispatch } from "@/redux/store";
 import { useDispatch } from "react-redux";
 import {
   removeItemFromCart,
   updateCartItemQuantity,
-} from "@/redux/features/cart-slice";
+} from "@/redux/features/cart-thunks";
+import { formatPrice } from "@/lib/format";
 
 import Image from "next/image";
 
 const SingleItem = ({ item }) => {
-  const [quantity, setQuantity] = useState(item.quantity);
+  // The cart state is the source of truth: the server may cap the quantity at the stock.
+  const quantity: number = item.quantity;
+  const atStockLimit = item.stock !== undefined && quantity >= item.stock;
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -18,16 +21,13 @@ const SingleItem = ({ item }) => {
   };
 
   const handleIncreaseQuantity = () => {
-    setQuantity(quantity + 1);
+    if (atStockLimit) return;
     dispatch(updateCartItemQuantity({ id: item.id, quantity: quantity + 1 }));
   };
 
   const handleDecreaseQuantity = () => {
     if (quantity > 1) {
-      setQuantity(quantity - 1);
       dispatch(updateCartItemQuantity({ id: item.id, quantity: quantity - 1 }));
-    } else {
-      return;
     }
   };
 
@@ -50,7 +50,7 @@ const SingleItem = ({ item }) => {
       </div>
 
       <div className="min-w-[180px]">
-        <p className="text-dark">${item.discountedPrice}</p>
+        <p className="text-dark">{formatPrice(item.discountedPrice)}</p>
       </div>
 
       <div className="min-w-[275px]">
@@ -81,6 +81,7 @@ const SingleItem = ({ item }) => {
 
           <button
             onClick={() => handleIncreaseQuantity()}
+            disabled={atStockLimit}
             aria-label="button for add product"
             className="flex items-center justify-center w-11.5 h-11.5 ease-out duration-200 hover:text-blue"
           >
@@ -106,7 +107,7 @@ const SingleItem = ({ item }) => {
       </div>
 
       <div className="min-w-[200px]">
-        <p className="text-dark">${item.discountedPrice * quantity}</p>
+        <p className="text-dark">{formatPrice(item.discountedPrice * quantity)}</p>
       </div>
 
       <div className="min-w-[50px] flex justify-end">

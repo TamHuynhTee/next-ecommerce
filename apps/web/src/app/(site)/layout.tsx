@@ -4,6 +4,7 @@ import "../css/style.css";
 import AppShell from "./AppShell";
 import HeaderAuth from "@/components/Header/HeaderAuth";
 import Footer from "@/components/Footer";
+import CartHydrator from "@/components/Common/CartHydrator";
 import UserMenu from "@/components/Header/UserMenu";
 
 // Designed for Vietnamese, so stacked diacritics render cleanly next to Latin text.
@@ -28,6 +29,12 @@ export default function RootLayout({
       <body>
         <AppShell
           footer={<Footer />}
+          cartSlot={
+            // Loads the signed-in user's cart; guests keep their local cart.
+            <Suspense fallback={null}>
+              <CartHydrator />
+            </Suspense>
+          }
           headerAuth={
             // Guest UI is part of the static shell; the real user streams in.
             <Suspense fallback={<UserMenu user={null} />}>
