@@ -11,7 +11,12 @@ export type CartLine = {
   imageUrl: string | null;
 };
 
-export type ServerCart = { items: CartLine[]; subtotal: number };
+export type ServerCart = {
+  items: CartLine[];
+  subtotal: number;
+  shippingFee: number;
+  total: number;
+};
 
 export type CartActionError =
   | "UNAUTHENTICATED"
