@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ERROR_CODE } from 'src/common/constants/error-code';
+import { shippingFeeFor } from 'src/common/utils/shipping';
 import { ProductVariant } from 'src/modules/products/entities/product/product-variant.entity';
 import { ProductStatus } from 'src/modules/products/entities/product/product.entity';
 import { Repository } from 'typeorm';
@@ -25,7 +26,12 @@ export type CartLine = {
   imageUrl: string | null;
 };
 
-export type CartView = { items: CartLine[]; subtotal: number };
+export type CartView = {
+  items: CartLine[];
+  subtotal: number;
+  shippingFee: number;
+  total: number;
+};
 
 @Injectable()
 export class CartService {
@@ -50,7 +56,8 @@ export class CartService {
       (sum, line) => sum + line.discountedPrice * line.quantity,
       0,
     );
-    return { items, subtotal };
+    const shippingFee = shippingFeeFor(subtotal);
+    return { items, subtotal, shippingFee, total: subtotal + shippingFee };
   }
 
   async add(userId: string, { variantId, quantity }: AddCartItemDto) {
