@@ -7,6 +7,8 @@ import { useDispatch } from "react-redux";
 
 import Breadcrumb from "../Common/Breadcrumb";
 import { useUser } from "@/context/UserContext";
+import { getProfileAction, listAddressesAction } from "@/lib/account/actions";
+import type { Address, Profile } from "@/lib/account/types";
 import { getCartAction } from "@/lib/cart/actions";
 import type { ServerCart } from "@/lib/cart/types";
 import { formatPrice } from "@/lib/format";
@@ -67,6 +69,11 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [issues, setIssues] = useState<CartIssue[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  // Empty string means "enter a new address".
+  const [selectedId, setSelectedId] = useState("");
+  const selected = addresses.find((a) => a.id === selectedId) ?? null;
 
   const loadCart = async () => {
     const result = await getCartAction();
@@ -78,6 +85,17 @@ const Checkout = () => {
   };
 
   useEffect(() => {
+    // Saved details only prefill the form; failing to load them is harmless.
+    Promise.all([getProfileAction(), listAddressesAction()]).then(
+      ([profileResult, addressResult]) => {
+        if (profileResult.ok === true) setProfile(profileResult.data);
+        if (addressResult.ok === true) {
+          setAddresses(addressResult.data);
+          // The list is ordered by most recent, so the first one is the likeliest choice.
+          setSelectedId(addressResult.data[0]?.id ?? "");
+        }
+      },
+    );
     loadCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -97,6 +115,7 @@ const Checkout = () => {
       addressLine2: value("addressLine2") || undefined,
       city: value("city"),
       postalCode: value("postalCode"),
+      country: selected?.country,
     };
 
     setSubmitting(true);
@@ -147,10 +166,33 @@ const Checkout = () => {
                     <h3 className="font-medium text-xl text-dark mb-5.5">
                       Delivery details
                     </h3>
-                    <div className="flex flex-col gap-5">
+                    {addresses.length > 0 && (
+                      <div className="mb-5">
+                        <label htmlFor="savedAddress" className="block mb-2.5">
+                          Saved addresses
+                        </label>
+                        <select
+                          id="savedAddress"
+                          value={selectedId}
+                          onChange={(e) => setSelectedId(e.target.value)}
+                          className={inputClass}
+                        >
+                          {addresses.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.title} - {a.addressLine1}, {a.city}
+                            </option>
+                          ))}
+                          <option value="">Use a new address</option>
+                        </select>
+                      </div>
+                    )}
+                    <div
+                      key={`${selectedId}:${profile?.id ?? ""}`}
+                      className="flex flex-col gap-5"
+                    >
                       <div className="flex flex-col sm:flex-row gap-5">
-                        <Field label="First name" name="firstName" maxLength={100} autoComplete="given-name" />
-                        <Field label="Last name" name="lastName" maxLength={100} autoComplete="family-name" />
+                        <Field label="First name" name="firstName" maxLength={100} defaultValue={profile?.firstName ?? ""} autoComplete="given-name" />
+                        <Field label="Last name" name="lastName" maxLength={100} defaultValue={profile?.lastName ?? ""} autoComplete="family-name" />
                       </div>
                       <div className="flex flex-col sm:flex-row gap-5">
                         <Field
@@ -159,6 +201,7 @@ const Checkout = () => {
                           type="tel"
                           pattern="\+?[0-9]{9,11}"
                           title="9-11 digits"
+                          defaultValue={selected?.phoneNumber ?? ""}
                           autoComplete="tel"
                         />
                         <Field
@@ -170,11 +213,11 @@ const Checkout = () => {
                           autoComplete="email"
                         />
                       </div>
-                      <Field label="Address" name="addressLine1" maxLength={500} placeholder="House number and street name" autoComplete="address-line1" />
-                      <Field label="Apartment, suite, etc." name="addressLine2" required={false} maxLength={500} autoComplete="address-line2" />
+                      <Field label="Address" name="addressLine1" maxLength={500} placeholder="House number and street name" defaultValue={selected?.addressLine1 ?? ""} autoComplete="address-line1" />
+                      <Field label="Apartment, suite, etc." name="addressLine2" required={false} maxLength={500} defaultValue={selected?.addressLine2 ?? ""} autoComplete="address-line2" />
                       <div className="flex flex-col sm:flex-row gap-5">
-                        <Field label="City" name="city" maxLength={100} autoComplete="address-level2" />
-                        <Field label="Postal code" name="postalCode" maxLength={20} autoComplete="postal-code" />
+                        <Field label="City" name="city" maxLength={100} defaultValue={selected?.city ?? ""} autoComplete="address-level2" />
+                        <Field label="Postal code" name="postalCode" maxLength={20} defaultValue={selected?.postalCode ?? ""} autoComplete="postal-code" />
                       </div>
                     </div>
                   </div>

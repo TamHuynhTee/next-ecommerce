@@ -64,6 +64,7 @@ export type CreateOrderInput = {
   addressLine2?: string;
   city: string;
   postalCode: string;
+  country?: string;
 };
 
 export type OrderResult<T> =
