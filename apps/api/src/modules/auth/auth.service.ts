@@ -1,15 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes, randomUUID } from 'crypto';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { ERROR_CODE } from 'src/common/constants/error-code';
 import { JwtPayload } from 'src/common/interfaces';
 import { AppConfig } from 'src/config/configuration';
 import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/users.service';
 import { CredentialService } from './credential.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { RefreshToken } from './entities/refresh-token.entity';
 
 export type AuthTokens = { access_token: string; refresh_token: string };
@@ -90,6 +95,43 @@ export class AuthService {
       tokenHash: hashToken(rawToken),
     });
     if (stored) await this.revokeFamily(stored.familyId);
+  }
+
+  /**
+   * Changes the password after checking the current one, and signs every other
+   * session out. The caller's own session survives when its refresh token is given.
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+    const user = await this.userService.findById(userId);
+    if (
+      !user ||
+      !(await this.credentialService.verify(
+        dto.currentPassword,
+        user.hashedPassword,
+      ))
+    ) {
+      throw new BadRequestException(ERROR_CODE.WRONG_PASSWORD);
+    }
+
+    await this.userService.setPassword(
+      userId,
+      await this.credentialService.hash(dto.newPassword),
+    );
+
+    const own = dto.refreshToken
+      ? await this.refreshRepo.findOneBy({
+          tokenHash: hashToken(dto.refreshToken),
+          userId,
+        })
+      : null;
+    await this.refreshRepo.update(
+      {
+        userId,
+        revokedAt: IsNull(),
+        ...(own ? { familyId: Not(own.familyId) } : {}),
+      },
+      { revokedAt: new Date() },
+    );
   }
 
   private async issueTokens(user: User, familyId: string): Promise<AuthTokens> {

@@ -6,6 +6,7 @@ import {
 } from 'src/common/constants/error-code';
 import { QueryFailedError, Repository } from 'typeorm';
 import { CredentialService } from '../auth/credential.service';
+import { UpdateProfileDto } from './dto/account.dto';
 import { ListCustomersDto } from './dto/list-customers.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
@@ -54,6 +55,28 @@ export class UserService {
 
   async findById(id: string): Promise<User> {
     return this.userRepo.findOneBy({ id });
+  }
+
+  /** Fresh profile from the database (the JWT payload can be stale). */
+  async getProfile(id: string) {
+    const user = await this.userRepo.findOneByOrFail({ id });
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      dateOfBirth: user.dateOfBirth,
+    };
+  }
+
+  async updateProfile(id: string, dto: UpdateProfileDto) {
+    await this.userRepo.update(id, dto);
+    return this.getProfile(id);
+  }
+
+  async setPassword(id: string, hashedPassword: string) {
+    await this.userRepo.update(id, { hashedPassword });
   }
 
   async findByEmail(email: string): Promise<User> {
