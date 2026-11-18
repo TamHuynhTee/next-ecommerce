@@ -11,6 +11,7 @@ import { PreviewSliderProvider } from "../context/PreviewSliderContext";
 import PreviewSliderModal from "@/components/Common/PreviewSlider";
 import ScrollToTop from "@/components/Common/ScrollToTop";
 import PreLoader from "@/components/Common/PreLoader";
+import InitialSync from "@/components/Common/InitialSync";
 
 /**
  * Client-side app chrome. The session-dependent part of the header is a server
@@ -41,6 +42,7 @@ export default function AppShell({
       {loading && <PreLoader />}
       <Toaster position="top-right" />
       <ReduxProvider>
+        <InitialSync />
         {cartSlot}
         <CartModalProvider>
           <ModalProvider>
