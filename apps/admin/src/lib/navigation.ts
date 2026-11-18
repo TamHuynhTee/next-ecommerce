@@ -10,7 +10,7 @@ export const navigation: NavGroup[] = [
       { title: "Overview", href: "/", icon: LayoutDashboard },
       { title: "Products", href: "/products", icon: Package },
       { title: "Categories", href: "/categories", icon: FolderTree },
-      { title: "Orders", href: "/orders", icon: ShoppingCart, badge: 8 },
+      { title: "Orders", href: "/orders", icon: ShoppingCart },
       { title: "Customers", href: "/customers", icon: Users },
     ],
   },

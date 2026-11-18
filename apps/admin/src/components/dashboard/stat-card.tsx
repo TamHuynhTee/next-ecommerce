@@ -1,29 +1,29 @@
-import { Briefcase, Send, TrendingUp, Wallet } from "lucide-react";
+import { Briefcase, ShoppingCart, Clock, Users } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import type { stats } from "@/lib/mock-data";
 
-const icons = { briefcase: Briefcase, wallet: Wallet, trending: TrendingUp, send: Send };
-type Stat = (typeof stats)[number];
+const icons = { revenue: Briefcase, orders: ShoppingCart, pending: Clock, customers: Users };
+
+export type Stat = {
+  label: string;
+  value: string;
+  hint: string;
+  icon: keyof typeof icons;
+  tone: "chart-1" | "chart-2" | "chart-3" | "chart-4";
+};
 
 export function StatCard({ stat }: { stat: Stat }) {
   const Icon = icons[stat.icon];
-  const color = `var(--${stat.tone})`;
   return (
     <Card className="shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-      <CardContent className="space-y-3">
+      <CardContent>
         <div className="flex items-start justify-between">
           <div>
             <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
+            <p className="text-sm font-medium">{stat.label}</p>
             <p className="text-sm text-muted-foreground">{stat.hint}</p>
           </div>
-          <Icon className="size-6" style={{ color }} />
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full" style={{ width: `${stat.progress}%`, backgroundColor: color }} />
-          </div>
-          <span className="text-xs text-muted-foreground">{stat.progress}%</span>
+          <Icon className="size-6" style={{ color: `var(--${stat.tone})` }} />
         </div>
       </CardContent>
     </Card>
