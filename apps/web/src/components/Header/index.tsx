@@ -1,6 +1,7 @@
 "use client";
 import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import CustomSelect from "./CustomSelect";
 import { menuData } from "./menuData";
 import { formatPrice } from "@/lib/format";
@@ -12,6 +13,7 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import Image from "next/image";
 
 const Header = ({ authSlot }: { authSlot?: React.ReactNode }) => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
@@ -19,6 +21,17 @@ const Header = ({ authSlot }: { authSlot?: React.ReactNode }) => {
 
   const product = useAppSelector((state) => state.cartReducer.items);
   const totalPrice = useSelector(selectTotalPrice);
+
+  // Search results are the shop page filtered by `q`; an empty box shows the whole shop.
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const term = searchQuery.trim().slice(0, 100);
+    router.push(
+      term
+        ? `/shop-without-sidebar?q=${encodeURIComponent(term)}`
+        : "/shop-without-sidebar",
+    );
+  };
 
   const handleOpenCartModal = () => {
     openCartModal();
@@ -73,7 +86,7 @@ const Header = ({ authSlot }: { authSlot?: React.ReactNode }) => {
             </Link>
 
             <div className="max-w-[475px] w-full">
-              <form>
+              <form onSubmit={handleSearch} role="search">
                 <div className="flex items-center">
                   <CustomSelect options={options} />
 
@@ -93,6 +106,7 @@ const Header = ({ authSlot }: { authSlot?: React.ReactNode }) => {
 
                     <button
                       id="search-btn"
+                      type="submit"
                       aria-label="Search"
                       className="flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 ease-in duration-200 hover:text-blue"
                     >
