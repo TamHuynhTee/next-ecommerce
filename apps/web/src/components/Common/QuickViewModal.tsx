@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { AppDispatch, useAppSelector } from "@/redux/store";
-import { addItemToCart } from "@/redux/features/cart-slice";
+import { addItemToCart } from "@/redux/features/cart-thunks";
 import { useDispatch } from "react-redux";
 import Image from "next/image";
 import { formatPrice } from "@/lib/format";

@@ -7,7 +7,7 @@ import Breadcrumb from "../Common/Breadcrumb";
 import Newsletter from "../Common/Newsletter";
 import { usePreviewSlider } from "@/app/context/PreviewSliderContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
-import { addItemToCart } from "@/redux/features/cart-slice";
+import { addItemToCart } from "@/redux/features/cart-thunks";
 import { updateproductDetails } from "@/redux/features/product-details";
 import { addItemToWishlist } from "@/redux/features/wishlist-slice";
 import { AppDispatch } from "@/redux/store";

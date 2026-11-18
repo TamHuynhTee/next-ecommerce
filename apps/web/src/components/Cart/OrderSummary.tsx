@@ -1,6 +1,7 @@
 import { selectTotalPrice } from "@/redux/features/cart-slice";
 import { useAppSelector } from "@/redux/store";
 import React from "react";
+import { formatPrice } from "@/lib/format";
 import { useSelector } from "react-redux";
 
 const OrderSummary = () => {
@@ -34,7 +35,7 @@ const OrderSummary = () => {
               </div>
               <div>
                 <p className="text-dark text-right">
-                  ${item.discountedPrice * item.quantity}
+                  {formatPrice(item.discountedPrice * item.quantity)}
                 </p>
               </div>
             </div>
@@ -47,7 +48,7 @@ const OrderSummary = () => {
             </div>
             <div>
               <p className="font-medium text-lg text-dark text-right">
-                ${totalPrice}
+                {formatPrice(totalPrice)}
               </p>
             </div>
           </div>

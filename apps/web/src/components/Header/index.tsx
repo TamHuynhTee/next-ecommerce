@@ -3,6 +3,7 @@ import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import CustomSelect from "./CustomSelect";
 import { menuData } from "./menuData";
+import { formatPrice } from "@/lib/format";
 import Dropdown from "./Dropdown";
 import { useAppSelector } from "@/redux/store";
 import { useSelector } from "react-redux";
@@ -167,7 +168,7 @@ const Header = ({ authSlot }: { authSlot?: React.ReactNode }) => {
                       cart
                     </span>
                     <p className="font-medium text-custom-sm text-dark">
-                      ${totalPrice}
+                      {formatPrice(totalPrice)}
                     </p>
                   </div>
                 </button>
