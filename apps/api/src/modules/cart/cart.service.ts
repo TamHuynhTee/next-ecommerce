@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ERROR_CODE } from 'src/common/constants/error-code';
 import { shippingFeeFor } from 'src/common/utils/shipping';
 import { ProductVariant } from 'src/modules/products/entities/product/product-variant.entity';
-import { ProductStatus } from 'src/modules/products/entities/product/product.entity';
+import { isPurchasable } from 'src/modules/products/purchasable';
 import { Repository } from 'typeorm';
 import { AddCartItemDto, MAX_LINE_QUANTITY } from './dto/cart.dto';
 import { CartItem } from './entities/cart-item.entity';
@@ -50,7 +50,7 @@ export class CartService {
     });
 
     const items = rows
-      .filter((row) => this.isPurchasable(row.productVariant))
+      .filter((row) => isPurchasable(row.productVariant))
       .map((row) => this.toLine(row));
     const subtotal = items.reduce(
       (sum, line) => sum + line.discountedPrice * line.quantity,
@@ -142,16 +142,10 @@ export class CartService {
       where: { id: variantId },
       relations: { product: true },
     });
-    if (!variant || !this.isPurchasable(variant)) {
+    if (!variant || !isPurchasable(variant)) {
       throw new NotFoundException(ERROR_CODE.VARIANT_NOT_AVAILABLE);
     }
     return variant;
-  }
-
-  private isPurchasable(variant?: ProductVariant | null) {
-    return (
-      !!variant?.isActive && variant.product?.status === ProductStatus.ACTIVE
-    );
   }
 
   private toLine(row: CartItem): CartLine {
