@@ -10,6 +10,9 @@ import {
 } from 'class-validator';
 import { ProductStatus } from '../entities/product/product.entity';
 
+/** Keeps (page - 1) * limit well inside the integer range of the database. */
+export const MAX_PAGE = 1_000_000;
+
 export enum ProductSort {
   NEWEST = 'newest',
   PRICE_ASC = 'price_asc',
@@ -20,6 +23,7 @@ export class ListProductsDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(MAX_PAGE)
   @IsOptional()
   page?: number = 1;
 
@@ -52,6 +56,7 @@ export class ListProductsDto {
   @Type(() => Number)
   @IsInt()
   @Min(0)
+  @Max(Number.MAX_SAFE_INTEGER)
   @IsOptional()
   minPrice?: number;
 
@@ -59,6 +64,7 @@ export class ListProductsDto {
   @Type(() => Number)
   @IsInt()
   @Min(0)
+  @Max(Number.MAX_SAFE_INTEGER)
   @IsOptional()
   maxPrice?: number;
 
