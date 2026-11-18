@@ -4,7 +4,7 @@ import { Product } from "@/types/product";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { updateQuickView } from "@/redux/features/quickView-slice";
 import { addItemToCart } from "@/redux/features/cart-thunks";
-import { addItemToWishlist } from "@/redux/features/wishlist-slice";
+import { addItemToWishlist } from "@/redux/features/wishlist-thunks";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Link from "next/link";
@@ -37,6 +37,8 @@ const SingleGridItem = ({ item }: { item: Product }) => {
     dispatch(
       addItemToWishlist({
         ...item,
+        // Wishlist entries are per variant, like cart lines.
+        id: item.variantId ?? item.id,
         status: "available",
         quantity: 1,
       })
