@@ -41,6 +41,18 @@ export class OrderController {
   }
 
   @Roles(Role.Admin)
+  @Get('admin/stats')
+  stats() {
+    return this.orderService.stats();
+  }
+
+  @Roles(Role.Admin)
+  @Get('admin/:id')
+  findOneAsAdmin(@Param('id', ParseUUIDPipe) id: string) {
+    return this.orderService.findOneAsAdmin(id);
+  }
+
+  @Roles(Role.Admin)
   @Patch(':id/status')
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,

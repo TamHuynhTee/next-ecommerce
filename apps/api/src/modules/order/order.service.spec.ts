@@ -4,8 +4,8 @@ import { ProductStatus } from '../products/entities/product/product.entity';
 import { CreateOrderDto } from './dto/order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { OrderDetail, OrderDetailStatus } from './entities/order.entity';
-import { Payment } from './entities/payment.entity';
-import { OrderService } from './order.service';
+import { Payment, PaymentStatus } from './entities/payment.entity';
+import { fillDays, fillMonths, OrderService } from './order.service';
 
 // @nestjs/typeorm is ESM-only; only its injection decorator is needed here.
 jest.mock('@nestjs/typeorm', () => ({
@@ -212,5 +212,56 @@ describe('OrderService status changes', () => {
     await expect(
       service.updateStatus('o1', OrderDetailStatus.CONFIRMED),
     ).resolves.toBeDefined();
+  });
+});
+
+describe('OrderService.updateStatus payment', () => {
+  it('marks the cash payment as collected once delivered', async () => {
+    const updates: unknown[][] = [];
+    const order = {
+      id: 'o1',
+      userId: USER,
+      status: OrderDetailStatus.SHIPPED,
+    } as OrderDetail;
+    const manager = {
+      findOne: jest.fn(async () => order),
+      save: jest.fn(async (o) => o),
+      update: jest.fn(async (...args: unknown[]) => {
+        updates.push(args);
+      }),
+    };
+    const service = new OrderService({
+      transaction: async (fn: (m: unknown) => unknown) => fn(manager),
+      getRepository: () => ({ findOne: async () => order }),
+    } as unknown as DataSource);
+
+    await service.updateStatus('o1', OrderDetailStatus.DELIVERED);
+    expect(updates).toEqual([
+      [Payment, { orderId: 'o1' }, { status: PaymentStatus.SUCCEEDED }],
+    ]);
+  });
+});
+
+describe('stats bucketing', () => {
+  it('fills 30 days ending today with zeros for quiet days', () => {
+    const days = fillDays(
+      [{ day: '2026-11-17', revenue: '500000' }],
+      '2026-11-18',
+    );
+    expect(days).toHaveLength(30);
+    expect(days[29]).toEqual({ day: '2026-11-18', revenue: 0 });
+    expect(days[28]).toEqual({ day: '2026-11-17', revenue: 500000 });
+    expect(days[0].day).toBe('2026-10-20');
+  });
+
+  it('fills 12 months across a year boundary', () => {
+    const months = fillMonths(
+      [{ month: '2026-01', revenue: '100' }],
+      '2026-02-10',
+    );
+    expect(months).toHaveLength(12);
+    expect(months[0].month).toBe('2025-03');
+    expect(months[10]).toEqual({ month: '2026-01', revenue: 100 });
+    expect(months[11].month).toBe('2026-02');
   });
 });

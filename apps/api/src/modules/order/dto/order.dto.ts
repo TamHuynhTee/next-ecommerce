@@ -76,6 +76,12 @@ export class ListOrdersDto {
   @IsOptional()
   @IsEnum(OrderDetailStatus)
   status?: OrderDetailStatus;
+
+  /** Admin search: order id, customer name or email. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  q?: string;
 }
 
 export class UpdateOrderStatusDto {
