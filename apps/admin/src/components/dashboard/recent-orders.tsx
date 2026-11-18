@@ -1,27 +1,22 @@
-import { MoreVertical } from "lucide-react";
+import Link from "next/link";
 
+import { StatusBadge } from "@/components/orders/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { recentOrders, type OrderStatus } from "@/lib/mock-data";
+import type { Order } from "@/lib/api/orders";
+import { formatDate, formatVnd } from "@/lib/utils";
 
-const statusStyles: Record<OrderStatus, string> = {
-  Paid: "bg-chart-3/20 text-chart-3",
-  Pending: "bg-chart-4/25 text-amber-600 dark:text-chart-4",
-  Shipped: "bg-secondary text-secondary-foreground",
-  Cancelled: "bg-destructive/15 text-destructive",
-};
-
-export function RecentOrders() {
+export function RecentOrders({ orders }: { orders: Order[] }) {
   return (
     <Card className="shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
       <CardHeader className="grid-cols-[1fr_auto]">
         <div className="space-y-1.5">
           <CardTitle className="text-xl">Recent Orders</CardTitle>
-          <CardDescription>Last 2 days</CardDescription>
+          <CardDescription>Latest {orders.length} orders</CardDescription>
         </div>
-        <MoreVertical className="size-4 text-muted-foreground" />
+        <Button asChild variant="ghost" size="sm"><Link href="/orders">View all</Link></Button>
       </CardHeader>
       <CardContent>
         <Table>
@@ -35,27 +30,28 @@ export function RecentOrders() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentOrders.map((o) => (
+            {orders.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No orders yet.</TableCell></TableRow>
+            ) : null}
+            {orders.map((o) => (
               <TableRow key={o.id} className="h-14 odd:bg-muted/50 hover:bg-muted">
-                <TableCell className="font-medium">{o.id}</TableCell>
+                <TableCell className="font-medium"><Link href={`/orders/${o.id}`} className="hover:underline">#{o.id.slice(0, 8)}</Link></TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="size-8">
                       <AvatarFallback className="bg-secondary text-xs text-secondary-foreground">
-                        {o.customer.split(" ").map((n) => n[0]).join("")}
+                        {`${o.customer.firstName[0] ?? ""}${o.customer.lastName[0] ?? ""}`.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="leading-tight">
-                      <div className="text-sm font-medium">{o.customer}</div>
-                      <div className="text-xs text-muted-foreground">{o.email}</div>
+                      <div className="text-sm font-medium">{o.customer.firstName} {o.customer.lastName}</div>
+                      <div className="text-xs text-muted-foreground">{o.customer.email}</div>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{o.date}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className={statusStyles[o.status]}>{o.status}</Badge>
-                </TableCell>
-                <TableCell className="text-right">{o.total}</TableCell>
+                <TableCell className="hidden md:table-cell">{formatDate(o.createdAt)}</TableCell>
+                <TableCell><StatusBadge status={o.status} /></TableCell>
+                <TableCell className="text-right">{formatVnd(o.total)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

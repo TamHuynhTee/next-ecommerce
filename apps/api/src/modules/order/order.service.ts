@@ -13,7 +13,7 @@ import { ProductStatus } from '../products/entities/product/product.entity';
 import { CreateOrderDto, ListOrdersDto } from './dto/order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { OrderDetail, OrderDetailStatus } from './entities/order.entity';
-import { Payment } from './entities/payment.entity';
+import { Payment, PaymentStatus } from './entities/payment.entity';
 
 const PAYMENT_PROVIDER_COD = 'cod';
 const DEFAULT_COUNTRY = 'VN';
@@ -31,6 +31,46 @@ const NEXT_STATUSES: Record<OrderDetailStatus, OrderDetailStatus[]> = {
   [OrderDetailStatus.DELIVERED]: [],
   [OrderDetailStatus.CANCELLED]: [],
 };
+
+/** Escapes LIKE wildcards so user input is matched literally. */
+function escapeLike(value: string) {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Parses a YYYY-MM-DD string as a UTC date, so day arithmetic ignores local time zones. */
+const parseDay = (day: string) => new Date(`${day}T00:00:00Z`);
+
+/** The 30 days ending on `today` (YYYY-MM-DD), with zero for days without sales. */
+export function fillDays(
+  rows: Array<{ day: string; revenue: string }>,
+  today: string,
+) {
+  const byDay = new Map(rows.map((r) => [r.day, Number(r.revenue)]));
+  return Array.from({ length: 30 }, (_, i) => {
+    const d = parseDay(today);
+    d.setUTCDate(d.getUTCDate() - (29 - i));
+    const day = isoDay(d);
+    return { day, revenue: byDay.get(day) ?? 0 };
+  });
+}
+
+/** The 12 months ending with the month of `today`, with zero for quiet months. */
+export function fillMonths(
+  rows: Array<{ month: string; revenue: string }>,
+  today: string,
+) {
+  const byMonth = new Map(rows.map((r) => [r.month, Number(r.revenue)]));
+  const base = parseDay(today);
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(
+      Date.UTC(base.getUTCFullYear(), base.getUTCMonth() - (11 - i), 1),
+    );
+    const month = isoDay(d).slice(0, 7);
+    return { month, revenue: byMonth.get(month) ?? 0 };
+  });
+}
 
 export type CartIssue = {
   variantId: string;
@@ -182,17 +222,93 @@ export class OrderService {
     return { items: orders.map((o) => this.toView(o)), total, page, limit };
   }
 
-  async listAll({ page = 1, limit = 10, status }: ListOrdersDto) {
-    const [orders, total] = await this.dataSource
+  async listAll({ page = 1, limit = 10, status, q }: ListOrdersDto) {
+    const qb = this.dataSource
       .getRepository(OrderDetail)
-      .findAndCount({
-        where: status ? { status } : {},
-        relations: RELATIONS,
-        order: { createdAt: 'DESC' },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+      .createQueryBuilder('o')
+      .leftJoinAndSelect('o.items', 'i')
+      .leftJoinAndSelect('i.productVariant', 'v')
+      .leftJoinAndSelect('o.payment', 'p')
+      .orderBy('o.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+    if (status) qb.andWhere('o.status = :status', { status });
+    const term = q?.trim();
+    if (term) {
+      qb.andWhere(
+        `(CAST(o.id AS text) ILIKE :q
+          OR o.customerEmail ILIKE :q
+          OR CONCAT(o.customerFirstName, ' ', o.customerLastName) ILIKE :q)`,
+        { q: `%${escapeLike(term)}%` },
+      );
+    }
+    const [orders, total] = await qb.getManyAndCount();
     return { items: orders.map((o) => this.toView(o)), total, page, limit };
+  }
+
+  /** Any order, for the back office. */
+  async findOneAsAdmin(id: string) {
+    const order = await this.dataSource
+      .getRepository(OrderDetail)
+      .findOne({ where: { id }, relations: RELATIONS });
+    if (!order) throw new NotFoundException(ERROR_CODE.ORDER_NOT_FOUND);
+    return this.toView(order);
+  }
+
+  /** Revenue figures ignore cancelled orders. */
+  async stats() {
+    const run = <T>(sql: string, params: unknown[] = []) =>
+      this.dataSource.query(sql, params) as Promise<T[]>;
+
+    // Day and month buckets use the database clock, the same one that stamped created_at.
+    const [{ today }] = await run<{ today: string }>(
+      `SELECT to_char(now(), 'YYYY-MM-DD') AS today`,
+    );
+    const [month] = await run<{ revenue: string; orders: string }>(
+      `SELECT COALESCE(SUM(total_amount), 0) AS revenue, COUNT(*) AS orders
+         FROM order_details
+        WHERE status <> 'cancelled'
+          AND created_at >= date_trunc('month', now())`,
+    );
+    const [pending] = await run<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM order_details WHERE status = 'pending'`,
+    );
+    const [customers] = await run<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM users
+        WHERE role = 'user' AND created_at >= now() - interval '30 days'`,
+    );
+    const daily = await run<{ day: string; revenue: string }>(
+      `SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS day,
+              SUM(total_amount) AS revenue
+         FROM order_details
+        WHERE status <> 'cancelled'
+          AND created_at >= date_trunc('day', now()) - interval '29 days'
+        GROUP BY 1`,
+    );
+    const monthly = await run<{ month: string; revenue: string }>(
+      `SELECT to_char(date_trunc('month', created_at), 'YYYY-MM') AS month,
+              SUM(total_amount) AS revenue
+         FROM order_details
+        WHERE status <> 'cancelled'
+          AND created_at >= date_trunc('month', now()) - interval '11 months'
+        GROUP BY 1`,
+    );
+    const byStatus = await run<{ status: OrderDetailStatus; count: string }>(
+      `SELECT status, COUNT(*) AS count FROM order_details GROUP BY status`,
+    );
+
+    return {
+      monthRevenue: Number(month.revenue),
+      monthOrders: Number(month.orders),
+      pendingOrders: Number(pending.count),
+      newCustomers: Number(customers.count),
+      daily: fillDays(daily, today),
+      monthly: fillMonths(monthly, today),
+      byStatus: Object.values(OrderDetailStatus).map((status) => ({
+        status,
+        count: Number(byStatus.find((r) => r.status === status)?.count ?? 0),
+      })),
+    };
   }
 
   /** Owners only: other users get the same 404 as a missing order. */
@@ -234,6 +350,14 @@ export class OrderService {
       } else {
         order.status = status;
         await manager.save(order);
+        if (status === OrderDetailStatus.DELIVERED) {
+          // Cash on delivery: the money is collected when the parcel arrives.
+          await manager.update(
+            Payment,
+            { orderId: order.id },
+            { status: PaymentStatus.SUCCEEDED },
+          );
+        }
       }
       return order.userId;
     });
