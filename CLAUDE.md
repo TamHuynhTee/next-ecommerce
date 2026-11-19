@@ -74,6 +74,12 @@ Always run through Nx with `pnpm` (see the guidelines above). Project names are 
 
 # Project Conventions
 
+## Toolchain
+
+- Use Node.js `>=22.6.0` and pnpm `>=12.21.0`, as declared in `engines` in the root `package.json`. pnpm refuses to install on older versions.
+- Node 22.6 is the floor because the API's `migration:*` and `seed:*` scripts pass `--no-experimental-strip-types`. Without it, Node's built-in TypeScript stripping loads `.ts` files as ES modules before `ts-node` can, and extensionless imports fail with "Cannot find module".
+- Keep package scripts runnable from Windows cmd: do not prefix commands with `VAR=value` (use `node` flags or config files instead).
+
 ## Code comments
 
 - Write all code comments in English only (including JSDoc, `TODO`s and inline comments), regardless of the language used in chat.
