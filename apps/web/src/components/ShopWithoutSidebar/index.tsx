@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import Breadcrumb from "../Common/Breadcrumb";
 
 import SingleGridItem from "../Shop/SingleGridItem";
@@ -70,6 +71,19 @@ const ShopWithoutSidebar = ({
                         {products.length} of {total}
                       </span>{" "}
                       Products
+                      {params.q && (
+                        <>
+                          {" "}
+                          for &ldquo;<span className="text-dark">{params.q}</span>
+                          &rdquo;{" "}
+                          <Link
+                            href={buildShopHref(BASE_PATH, params, { q: null })}
+                            className="text-blue hover:underline"
+                          >
+                            Clear
+                          </Link>
+                        </>
+                      )}
                     </p>
                   </div>
 
