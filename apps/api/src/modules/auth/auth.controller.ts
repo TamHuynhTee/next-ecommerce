@@ -16,6 +16,7 @@ import { LocalAuthGuard } from '../../common/guards/local-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SignupDto } from './dto/sign-up.dto';
 
@@ -60,6 +61,15 @@ export class AuthController {
   @Get('admin/me')
   getAdminProfile(@Req() req: Request) {
     return req.user;
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('change-password')
+  async changePassword(@Req() req: Request, @Body() body: ChangePasswordDto) {
+    await this.authService.changePassword(
+      (req.user as { userId: string }).userId,
+      body,
+    );
   }
 
   @Get('me')

@@ -6,6 +6,15 @@ import {
   MaxLength,
 } from 'class-validator';
 
+/** Strength rule shared by sign-up and password changes. */
+export const STRONG_PASSWORD = {
+  minLength: 6,
+  minLowercase: 1,
+  minNumbers: 1,
+  minSymbols: 1,
+  minUppercase: 1,
+};
+
 export class SignupDto {
   @IsString()
   @MaxLength(24)
@@ -26,12 +35,6 @@ export class SignupDto {
   email: string;
 
   @IsString()
-  @IsStrongPassword({
-    minLength: 6,
-    minLowercase: 1,
-    minNumbers: 1,
-    minSymbols: 1,
-    minUppercase: 1,
-  })
+  @IsStrongPassword(STRONG_PASSWORD)
   password: string;
 }
