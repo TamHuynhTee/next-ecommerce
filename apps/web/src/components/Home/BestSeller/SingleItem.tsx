@@ -9,7 +9,7 @@ import { addItemToCart } from "@/redux/features/cart-thunks";
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
-import { addItemToWishlist } from "@/redux/features/wishlist-slice";
+import { addItemToWishlist } from "@/redux/features/wishlist-thunks";
 
 const SingleItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
@@ -36,6 +36,8 @@ const SingleItem = ({ item }: { item: Product }) => {
     dispatch(
       addItemToWishlist({
         ...item,
+        // Wishlist entries are per variant, like cart lines.
+        id: item.variantId ?? item.id,
         status: "available",
         quantity: 1,
       })

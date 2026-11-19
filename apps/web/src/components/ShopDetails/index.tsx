@@ -9,7 +9,7 @@ import { usePreviewSlider } from "@/app/context/PreviewSliderContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { addItemToCart } from "@/redux/features/cart-thunks";
 import { updateproductDetails } from "@/redux/features/product-details";
-import { addItemToWishlist } from "@/redux/features/wishlist-slice";
+import { addItemToWishlist } from "@/redux/features/wishlist-thunks";
 import { AppDispatch } from "@/redux/store";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/types/product";

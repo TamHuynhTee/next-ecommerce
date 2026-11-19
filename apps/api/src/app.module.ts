@@ -7,6 +7,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { createDatabaseOptions } from './database/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { CartModule } from './modules/cart/cart.module';
+import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { OrderModule } from './modules/order/order.module';
 import { ProductModule } from './modules/products/products.module';
 import { UserModule } from './modules/users/users.module';
@@ -17,6 +18,7 @@ import configuration from './config/configuration';
     AuthModule,
     UserModule,
     CartModule,
+    WishlistModule,
     ProductModule,
     ConfigModule.forRoot({
       isGlobal: true,
